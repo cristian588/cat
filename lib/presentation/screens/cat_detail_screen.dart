@@ -4,21 +4,47 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../logic/blocs/cat_detail_bloc/cat_detail_bloc.dart';
-import '../../data/services/api_service.dart';
+import '../../data/repositories/cat_repository.dart';
 
 class CatDetailScreen extends StatelessWidget {
   final String catId;
 
   CatDetailScreen({required this.catId});
 
+  final TextStyle textStyle = const TextStyle(
+    fontSize: 16.0,
+    color: Colors.black,
+    decoration: TextDecoration.none,
+  );
+
+  final TextStyle cupertinoTextStyle = const TextStyle(
+    fontSize: 16.0,
+    color: CupertinoColors.black,
+    decoration: TextDecoration.none,
+  );
+
   @override
   Widget build(BuildContext context) {
+    final catRepository = RepositoryProvider.of<CatRepository>(context);
+
     return BlocProvider(
       create: (context) =>
-          CatDetailBloc(ApiService())..add(FetchCatDetail(catId)),
-      child: Platform.isIOS
-          ? _buildCupertinoDetail(context)
-          : _buildMaterialDetail(context),
+          CatDetailBloc(catRepository)..add(FetchCatDetail(catId)),
+      child: Builder(
+        builder: (context) => WillPopScope(
+          onWillPop: () async {
+            if (GoRouter.of(context).canPop()) {
+              GoRouter.of(context).pop();
+            } else {
+              GoRouter.of(context).go('/landing');
+            }
+            return false;
+          },
+          child: Platform.isIOS
+              ? _buildCupertinoDetail(context)
+              : _buildMaterialDetail(context),
+        ),
+      ),
     );
   }
 
@@ -28,13 +54,9 @@ class CatDetailScreen extends StatelessWidget {
         title: BlocBuilder<CatDetailBloc, CatDetailState>(
           builder: (context, state) {
             if (state is CatDetailLoaded) {
-              return Text(state.catBreed.name,
-                  style: const TextStyle(
-                      color: Colors.black, decoration: TextDecoration.none));
+              return Text(state.catBreed.name, style: textStyle);
             }
-            return const Text('Cat Details',
-                style: TextStyle(
-                    color: Colors.black, decoration: TextDecoration.none));
+            return Text('Cat Details', style: textStyle);
           },
         ),
         backgroundColor: Colors.white,
@@ -53,7 +75,11 @@ class CatDetailScreen extends StatelessWidget {
       body: BlocBuilder<CatDetailBloc, CatDetailState>(
         builder: (context, state) {
           if (state is CatDetailLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: Platform.isIOS
+                  ? CupertinoActivityIndicator()
+                  : CircularProgressIndicator(),
+            );
           } else if (state is CatDetailLoaded) {
             final catBreed = state.catBreed;
             return SingleChildScrollView(
@@ -73,49 +99,27 @@ class CatDetailScreen extends StatelessWidget {
                             size: 100,
                           ),
                     const SizedBox(height: 20.0),
-                    Text(catBreed.description,
-                        style: const TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
-                            decoration: TextDecoration.none)),
+                    Text(catBreed.description, style: textStyle),
                     const SizedBox(height: 20.0),
-                    Text('Origin: ${catBreed.origin}',
-                        style: const TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
-                            decoration: TextDecoration.none)),
+                    Text('Origin: ${catBreed.origin}', style: textStyle),
                     const SizedBox(height: 10.0),
                     Text('Intelligence: ${catBreed.intelligence}',
-                        style: const TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
-                            decoration: TextDecoration.none)),
+                        style: textStyle),
                     const SizedBox(height: 10.0),
                     Text('Adaptability: ${catBreed.adaptability}',
-                        style: const TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
-                            decoration: TextDecoration.none)),
+                        style: textStyle),
                     const SizedBox(height: 10.0),
                     Text('Life Span: ${catBreed.lifeSpan} years',
-                        style: const TextStyle(
-                            fontSize: 16.0,
-                            color: Colors.black,
-                            decoration: TextDecoration.none)),
+                        style: textStyle),
                   ],
                 ),
               ),
             );
           } else if (state is CatDetailError) {
-            return Center(
-                child: Text(state.message,
-                    style: const TextStyle(
-                        color: Colors.black, decoration: TextDecoration.none)));
+            return Center(child: Text(state.message, style: textStyle));
           }
-          return const Center(
-              child: Text('Select a cat to view details.',
-                  style: TextStyle(
-                      color: Colors.black, decoration: TextDecoration.none)));
+          return Center(
+              child: Text('Select a cat to view details.', style: textStyle));
         },
       ),
     );
@@ -127,15 +131,9 @@ class CatDetailScreen extends StatelessWidget {
         middle: BlocBuilder<CatDetailBloc, CatDetailState>(
           builder: (context, state) {
             if (state is CatDetailLoaded) {
-              return Text(state.catBreed.name,
-                  style: const TextStyle(
-                      color: CupertinoColors.black,
-                      decoration: TextDecoration.none));
+              return Text(state.catBreed.name, style: cupertinoTextStyle);
             }
-            return const Text('Cat Details',
-                style: TextStyle(
-                    color: CupertinoColors.black,
-                    decoration: TextDecoration.none));
+            return Text('Cat Details', style: cupertinoTextStyle);
           },
         ),
         leading: CupertinoButton(
@@ -175,35 +173,19 @@ class CatDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(catBreed.description,
-                            style: const TextStyle(
-                                fontSize: 16.0,
-                                color: CupertinoColors.black,
-                                decoration: TextDecoration.none)),
+                        Text(catBreed.description, style: cupertinoTextStyle),
                         const SizedBox(height: 20.0),
                         Text('Origin: ${catBreed.origin}',
-                            style: const TextStyle(
-                                fontSize: 16.0,
-                                color: CupertinoColors.black,
-                                decoration: TextDecoration.none)),
+                            style: cupertinoTextStyle),
                         const SizedBox(height: 10.0),
                         Text('Intelligence: ${catBreed.intelligence}',
-                            style: const TextStyle(
-                                fontSize: 16.0,
-                                color: CupertinoColors.black,
-                                decoration: TextDecoration.none)),
+                            style: cupertinoTextStyle),
                         const SizedBox(height: 10.0),
                         Text('Adaptability: ${catBreed.adaptability}',
-                            style: const TextStyle(
-                                fontSize: 16.0,
-                                color: CupertinoColors.black,
-                                decoration: TextDecoration.none)),
+                            style: cupertinoTextStyle),
                         const SizedBox(height: 10.0),
                         Text('Life Span: ${catBreed.lifeSpan} years',
-                            style: const TextStyle(
-                                fontSize: 16.0,
-                                color: CupertinoColors.black,
-                                decoration: TextDecoration.none)),
+                            style: cupertinoTextStyle),
                       ],
                     ),
                   ),
@@ -212,16 +194,11 @@ class CatDetailScreen extends StatelessWidget {
             );
           } else if (state is CatDetailError) {
             return Center(
-                child: Text(state.message,
-                    style: const TextStyle(
-                        color: CupertinoColors.black,
-                        decoration: TextDecoration.none)));
+                child: Text(state.message, style: cupertinoTextStyle));
           }
-          return const Center(
+          return Center(
               child: Text('Select a cat to view details.',
-                  style: TextStyle(
-                      color: CupertinoColors.black,
-                      decoration: TextDecoration.none)));
+                  style: cupertinoTextStyle));
         },
       ),
     );

@@ -1,53 +1,91 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/cat_model.dart';
+import 'package:cat/core/constants/app_constants.dart';
 
 class ApiService {
-  static const String _apiUrl = 'https://api.thecatapi.com/v1/breeds';
-  static const String _apiKey =
-      'live_99Qe4Ppj34NdplyLW67xCV7Ds0oSLKGgcWWYnSzMJY9C0QOu0HUR4azYxWkyW2nr';
-
   final http.Client client;
   ApiService({http.Client? client}) : client = client ?? http.Client();
 
-  Future<List<CatBreed>> fetchCatBreeds() async {
-    final response = await client.get(
-      Uri.parse(_apiUrl),
-      headers: {'x-api-key': _apiKey},
-    );
+  static Future<T> getObjectRequest<T>(
+    String endpoint,
+    String id,
+    Map<String, String> headers,
+    T Function(Map<String, dynamic>) fromJson,
+  ) async {
+    final url = Uri.parse('${AppConstants.baseApiUrl}$endpoint/$id');
+    try {
+      final response = await http.get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      Iterable jsonResponse = json.decode(response.body);
-      return jsonResponse.map((breed) => CatBreed.fromJson(breed)).toList();
-    } else {
-      throw Exception('Failed to load cat breeds');
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
+        return fromJson(responseBody);
+      } else {
+        _handleError(response);
+      }
+    } catch (e) {
+      throw Exception(e.toString());
     }
+
+    throw Exception('Unexpected error: Failed to fetch data from $url');
   }
 
-  Future<List<CatBreed>> searchCatBreeds(String query) async {
-    final response = await client.get(
-      Uri.parse('$_apiUrl/search?q=$query'),
-      headers: {'x-api-key': _apiKey},
-    );
+  static Future<List<TResult>> getListRequest<TResult>(
+    String endpoint,
+    Map<String, String> headers,
+    TResult Function(Map<String, dynamic>) fromJson,
+  ) async {
+    final url = Uri.parse('${AppConstants.baseApiUrl}$endpoint');
+    try {
+      final response = await http.get(
+        url,
+        headers: headers,
+      );
 
-    if (response.statusCode == 200) {
-      Iterable jsonResponse = json.decode(response.body);
-      return jsonResponse.map((breed) => CatBreed.fromJson(breed)).toList();
-    } else {
-      throw Exception('Failed to search cat breeds');
+      if (response.statusCode == 200) {
+        final List<dynamic> responseBody = jsonDecode(response.body);
+        return responseBody
+            .map((item) => fromJson(item as Map<String, dynamic>))
+            .toList();
+      } else {
+        _handleError(response);
+      }
+    } catch (e) {
+      throw Exception(e.toString());
     }
+
+    throw Exception('Unexpected error: Failed to fetch data from $url');
   }
 
-  Future<CatBreed> fetchCatDetail(String id) async {
-    final response = await client.get(
-      Uri.parse('$_apiUrl/$id'),
-      headers: {'x-api-key': _apiKey},
-    );
-
-    if (response.statusCode == 200) {
-      return CatBreed.fromJson(json.decode(response.body));
+  static void _handleError(http.Response response) {
+    final Map<String, dynamic> responseBody = jsonDecode(response.body);
+    final statusCode = response.statusCode;
+    if (statusCode == 400) {
+      if (responseBody.containsKey('modelState')) {
+        final errors = responseBody['modelState'] as Map<String, dynamic>;
+        final errorMessages = errors.entries
+            .map((entry) => '${entry.key}: ${entry.value.join(', ')}')
+            .join('; ');
+        throw Exception(errorMessages);
+      } else if (responseBody.containsKey('message')) {
+        throw Exception(responseBody['message']);
+      } else {
+        throw Exception('Bad Request: Unknown error occurred');
+      }
+    } else if (statusCode == 401) {
+      throw Exception('Unauthorized: Please check your credentials.');
+    } else if (statusCode == 403) {
+      throw Exception(
+          'Forbidden: You do not have permission to access this resource.');
+    } else if (statusCode == 404) {
+      throw Exception('Not Found: The requested resource could not be found.');
+    } else if (statusCode == 500) {
+      throw Exception('Internal Server Error: Please try again later.');
     } else {
-      throw Exception('Failed to load cat details');
+      final errorMessage = responseBody['message'] ?? 'Unknown error occurred';
+      throw Exception('Error $statusCode: $errorMessage');
     }
   }
 }

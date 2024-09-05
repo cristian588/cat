@@ -1,16 +1,16 @@
+import 'package:cat/data/repositories/cat_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cat/data/models/cat_model.dart';
-import 'package:cat/data/services/api_service.dart';
 import 'package:cat/logic/blocs/cat_detail_bloc/cat_detail_bloc.dart';
 
-class MockApiService extends Mock implements ApiService {}
+class MockCatRepository extends Mock implements CatRepository {}
 
 class FakeCatDetailEvent extends Fake implements CatDetailEvent {}
 
 void main() {
-  late MockApiService mockApiService;
+  late MockCatRepository mockCatRepository;
   late CatDetailBloc catDetailBloc;
 
   setUpAll(() {
@@ -18,8 +18,8 @@ void main() {
   });
 
   setUp(() {
-    mockApiService = MockApiService();
-    catDetailBloc = CatDetailBloc(mockApiService);
+    mockCatRepository = MockCatRepository();
+    catDetailBloc = CatDetailBloc(mockCatRepository);
   });
 
   tearDown(() {
@@ -62,7 +62,7 @@ void main() {
     blocTest<CatDetailBloc, CatDetailState>(
       'emits [CatDetailLoading, CatDetailLoaded] when FetchCatDetail is added and data is fetched successfully',
       build: () {
-        when(() => mockApiService.fetchCatDetail('abys'))
+        when(() => mockCatRepository.fetchCatDetail('abys'))
             .thenAnswer((_) async => catBreed);
         return catDetailBloc;
       },
@@ -76,7 +76,7 @@ void main() {
     blocTest<CatDetailBloc, CatDetailState>(
       'emits [CatDetailLoading, CatDetailError] when FetchCatDetail is added and fetching data fails',
       build: () {
-        when(() => mockApiService.fetchCatDetail('abys'))
+        when(() => mockCatRepository.fetchCatDetail('abys'))
             .thenThrow(Exception('Failed to fetch cat details'));
         return catDetailBloc;
       },

@@ -34,7 +34,7 @@ class CatCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const Icon(Icons.more_vert),
+                  Text("More")
                 ],
               ),
               const SizedBox(height: 10.0),
@@ -52,30 +52,37 @@ class CatCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Text(
-                    'Origin Country',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          'Origin Country',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          breed.origin,
+                          style: const TextStyle(fontSize: 14.0),
+                        ),
+                      ],
+                    ),
                   ),
-                  Text(
-                    'Intelligence',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          'Intelligence',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          breed.intelligence.toString(),
+                          style: const TextStyle(fontSize: 14.0),
+                        ),
+                      ],
+                    ),
+                  )
                 ],
               ),
               const SizedBox(height: 4.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Text(
-                    breed.origin,
-                    style: const TextStyle(fontSize: 14.0),
-                  ),
-                  Text(
-                    breed.intelligence.toString(),
-                    style: const TextStyle(fontSize: 14.0),
-                  ),
-                ],
-              ),
             ],
           ),
         ),

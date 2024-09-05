@@ -29,24 +29,27 @@ class _LandingScreenState extends State<LandingScreen> {
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return Platform.isIOS
         ? CupertinoNavigationBar(
-            middle: Text('Catbreeds'),
+            middle: Text('Cat Breeds'),
           ) as PreferredSizeWidget
         : AppBar(
-            title: Text('Catbreeds'),
+            title: Text('Cat Breeds'),
             centerTitle: true,
           );
   }
 
   Widget _buildSearchBar(BuildContext context) {
     return Platform.isIOS
-        ? CupertinoSearchTextField(
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-              _onSearch(context, value);
-            },
-            placeholder: 'Search breeds...',
+        ? Container(
+            padding: const EdgeInsets.all(8.0),
+            child: CupertinoSearchTextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+                _onSearch(context, value);
+              },
+              placeholder: 'Search breeds...',
+            ),
           )
         : Padding(
             padding: const EdgeInsets.all(8.0),
@@ -80,7 +83,11 @@ class _LandingScreenState extends State<LandingScreen> {
     return BlocBuilder<CatBloc, CatState>(
       builder: (context, state) {
         if (state is CatLoading) {
-          return Center(child: CircularProgressIndicator());
+          return Center(
+            child: Platform.isIOS
+                ? CupertinoActivityIndicator()
+                : CircularProgressIndicator(),
+          );
         } else if (state is CatLoaded) {
           if (state.breeds.isEmpty) {
             return Center(child: Text('No breeds found.'));

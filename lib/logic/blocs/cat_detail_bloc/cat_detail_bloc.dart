@@ -1,5 +1,5 @@
 import 'package:cat/data/models/cat_model.dart';
-import 'package:cat/data/services/api_service.dart';
+import 'package:cat/data/repositories/cat_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -45,9 +45,9 @@ class CatDetailError extends CatDetailState {
 
 // Bloc
 class CatDetailBloc extends Bloc<CatDetailEvent, CatDetailState> {
-  final ApiService apiService;
+  final CatRepository catRepository;
 
-  CatDetailBloc(this.apiService) : super(CatDetailInitial()) {
+  CatDetailBloc(this.catRepository) : super(CatDetailInitial()) {
     on<FetchCatDetail>(_onFetchCatDetail);
   }
 
@@ -55,7 +55,7 @@ class CatDetailBloc extends Bloc<CatDetailEvent, CatDetailState> {
       FetchCatDetail event, Emitter<CatDetailState> emit) async {
     emit(CatDetailLoading());
     try {
-      final catBreed = await apiService.fetchCatDetail(event.catId);
+      final catBreed = await catRepository.fetchCatDetail(event.catId);
       emit(CatDetailLoaded(catBreed));
     } catch (e) {
       emit(CatDetailError('Failed to fetch cat details'));

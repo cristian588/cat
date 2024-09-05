@@ -1,5 +1,5 @@
 import 'package:cat/data/models/cat_model.dart';
-import 'package:cat/data/services/api_service.dart';
+import 'package:cat/data/repositories/cat_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -48,9 +48,9 @@ class CatError extends CatState {
 
 // Bloc
 class CatBloc extends Bloc<CatEvent, CatState> {
-  final ApiService apiService;
+  final CatRepository catRepository;
 
-  CatBloc(this.apiService) : super(CatInitial()) {
+  CatBloc(this.catRepository) : super(CatInitial()) {
     on<FetchCatBreeds>(_onFetchCatBreeds);
     on<SearchCatBreeds>(_onSearchCatBreeds);
   }
@@ -59,7 +59,7 @@ class CatBloc extends Bloc<CatEvent, CatState> {
       FetchCatBreeds event, Emitter<CatState> emit) async {
     emit(CatLoading());
     try {
-      final breeds = await apiService.fetchCatBreeds();
+      final breeds = await catRepository.fetchCatBreeds();
       emit(CatLoaded(breeds));
     } catch (e) {
       emit(CatError('Failed to fetch cat breeds'));
@@ -70,7 +70,7 @@ class CatBloc extends Bloc<CatEvent, CatState> {
       SearchCatBreeds event, Emitter<CatState> emit) async {
     emit(CatLoading());
     try {
-      final breeds = await apiService.searchCatBreeds(event.query);
+      final breeds = await catRepository.searchCatBreeds(event.query);
       emit(CatLoaded(breeds));
     } catch (e) {
       emit(CatError('Failed to search cat breeds'));
