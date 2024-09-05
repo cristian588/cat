@@ -30,97 +30,107 @@ class CatDetailScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) =>
           CatDetailBloc(catRepository)..add(FetchCatDetail(catId)),
-      child: Builder(
-        builder: (context) => WillPopScope(
-          onWillPop: () async {
-            if (GoRouter.of(context).canPop()) {
-              GoRouter.of(context).pop();
-            } else {
-              GoRouter.of(context).go('/landing');
-            }
-            return false;
-          },
-          child: Platform.isIOS
-              ? _buildCupertinoDetail(context)
-              : _buildMaterialDetail(context),
-        ),
+      child: WillPopScope(
+        onWillPop: () async {
+          if (GoRouter.of(context).canPop()) {
+            GoRouter.of(context).pop();
+          } else {
+            GoRouter.of(context).go('/landing');
+          }
+          return false;
+        },
+        child: Platform.isIOS
+            ? _buildCupertinoDetail(context)
+            : _buildMaterialDetail(context),
       ),
     );
   }
 
   Widget _buildMaterialDetail(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: BlocBuilder<CatDetailBloc, CatDetailState>(
+    return WillPopScope(
+      onWillPop: () async {
+        if (GoRouter.of(context).canPop()) {
+          GoRouter.of(context).pop();
+        } else {
+          GoRouter.of(context).go('/landing');
+        }
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: BlocBuilder<CatDetailBloc, CatDetailState>(
+            builder: (context, state) {
+              if (state is CatDetailLoaded) {
+                return Text(state.catBreed.name, style: textStyle);
+              }
+              return Text('Cat Details', style: textStyle);
+            },
+          ),
+          backgroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.black),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (GoRouter.of(context).canPop()) {
+                GoRouter.of(context).pop();
+              } else {
+                GoRouter.of(context).go('/landing');
+              }
+            },
+          ),
+        ),
+        body: BlocBuilder<CatDetailBloc, CatDetailState>(
           builder: (context, state) {
-            if (state is CatDetailLoaded) {
-              return Text(state.catBreed.name, style: textStyle);
-            }
-            return Text('Cat Details', style: textStyle);
-          },
-        ),
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.black),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            if (GoRouter.of(context).canPop()) {
-              GoRouter.of(context).pop();
-            } else {
-              GoRouter.of(context).go('/landing');
-            }
-          },
-        ),
-      ),
-      body: BlocBuilder<CatDetailBloc, CatDetailState>(
-        builder: (context, state) {
-          if (state is CatDetailLoading) {
-            return Center(
-              child: Platform.isIOS
-                  ? CupertinoActivityIndicator()
-                  : CircularProgressIndicator(),
-            );
-          } else if (state is CatDetailLoaded) {
-            final catBreed = state.catBreed;
-            return SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    catBreed.imageUrl != null
-                        ? Image.network(
-                            catBreed.imageUrl!,
-                            height: 250,
-                            fit: BoxFit.cover,
-                          )
-                        : const Icon(
-                            Icons.pets,
-                            size: 100,
-                          ),
-                    const SizedBox(height: 20.0),
-                    Text(catBreed.description, style: textStyle),
-                    const SizedBox(height: 20.0),
-                    Text('Origin: ${catBreed.origin}', style: textStyle),
-                    const SizedBox(height: 10.0),
-                    Text('Intelligence: ${catBreed.intelligence}',
-                        style: textStyle),
-                    const SizedBox(height: 10.0),
-                    Text('Adaptability: ${catBreed.adaptability}',
-                        style: textStyle),
-                    const SizedBox(height: 10.0),
-                    Text('Life Span: ${catBreed.lifeSpan} years',
-                        style: textStyle),
-                  ],
+            if (state is CatDetailLoading) {
+              return Center(
+                child: Platform.isIOS
+                    ? CupertinoActivityIndicator()
+                    : CircularProgressIndicator(),
+              );
+            } else if (state is CatDetailLoaded) {
+              final catBreed = state.catBreed;
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: catBreed.imageUrl != null
+                            ? Image.network(
+                                catBreed.imageUrl!,
+                                height: 250,
+                                fit: BoxFit.cover,
+                              )
+                            : const Icon(
+                                Icons.pets,
+                                size: 100,
+                              ),
+                      ),
+                      const SizedBox(height: 20.0),
+                      Text(catBreed.description, style: textStyle),
+                      const SizedBox(height: 20.0),
+                      Text('Origin: ${catBreed.origin}', style: textStyle),
+                      const SizedBox(height: 10.0),
+                      Text('Intelligence: ${catBreed.intelligence}',
+                          style: textStyle),
+                      const SizedBox(height: 10.0),
+                      Text('Adaptability: ${catBreed.adaptability}',
+                          style: textStyle),
+                      const SizedBox(height: 10.0),
+                      Text('Life Span: ${catBreed.lifeSpan} years',
+                          style: textStyle),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          } else if (state is CatDetailError) {
-            return Center(child: Text(state.message, style: textStyle));
-          }
-          return Center(
-              child: Text('Select a cat to view details.', style: textStyle));
-        },
+              );
+            } else if (state is CatDetailError) {
+              return Center(child: Text(state.message, style: textStyle));
+            }
+            return Center(
+                child: Text('Select a cat to view details.', style: textStyle));
+          },
+        ),
       ),
     );
   }
@@ -158,16 +168,18 @@ class CatDetailScreen extends StatelessWidget {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  catBreed.imageUrl != null
-                      ? Image.network(
-                          catBreed.imageUrl!,
-                          height: 250,
-                          fit: BoxFit.cover,
-                        )
-                      : const Icon(
-                          CupertinoIcons.photo_fill,
-                          size: 100,
-                        ),
+                  Center(
+                    child: catBreed.imageUrl != null
+                        ? Image.network(
+                            catBreed.imageUrl!,
+                            height: 250,
+                            fit: BoxFit.cover,
+                          )
+                        : const Icon(
+                            CupertinoIcons.photo_fill,
+                            size: 100,
+                          ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(

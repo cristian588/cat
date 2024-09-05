@@ -29,10 +29,10 @@ class _LandingScreenState extends State<LandingScreen> {
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return Platform.isIOS
         ? CupertinoNavigationBar(
-            middle: Text('Cat Breeds'),
+            middle: Text('Catbreeds'),
           ) as PreferredSizeWidget
         : AppBar(
-            title: Text('Cat Breeds'),
+            title: Text('Catbreeds'),
             centerTitle: true,
           );
   }
